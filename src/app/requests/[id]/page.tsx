@@ -64,15 +64,20 @@ function Checks({ claim, onError }: { claim: Claim; onError: (m: string | null) 
                 {f.owner && !done && <span className="text-xs text-slate-500">· {t("flag.owner", { role: t(`role.${f.owner}`) })}</span>}
               </div>
               <p className="mt-1.5 text-sm">{text(f)}</p>
-              {!!f.related.length && (
-                <p className="mt-1 flex flex-wrap gap-2 text-xs text-slate-500">
-                  {t("flag.related")}
-                  {f.related.map((r) => {
-                    const other = claims.find((c) => c.id === r);
-                    return other && canSee(user, other) ? <ClaimLink key={r} id={r} /> : null;
-                  })}
-                </p>
-              )}
+              {(() => {
+                const visible = f.related.filter((r) => {
+                  const other = claims.find((c) => c.id === r);
+                  return other && canSee(user, other);
+                });
+                return visible.length ? (
+                  <p className="mt-1 flex flex-wrap gap-2 text-xs text-slate-500">
+                    {t("flag.related")}
+                    {visible.map((r) => (
+                      <ClaimLink key={r} id={r} />
+                    ))}
+                  </p>
+                ) : null;
+              })()}
               {f.response && (
                 <p className="mt-1.5 text-xs text-slate-600">{t("flag.response", { by: name(f.response.by), note: f.response.note })}</p>
               )}

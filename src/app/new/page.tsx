@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useApp } from "@/components/AppProvider";
 import { emptyForm, RequestFields, toEdits, validate, type FormErrors } from "@/components/RequestFields";
 import { Card, PageHeader } from "@/components/ui";
+import { canSubmit } from "@/lib/workflow";
 
 export default function NewRequestPage() {
   const { t, user, name, submit } = useApp();
@@ -12,6 +13,17 @@ export default function NewRequestPage() {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
   const [message, setMessage] = useState("");
+
+  if (!canSubmit(user.role)) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <PageHeader title={t("form.title")} />
+        <Card>
+          <p className="text-sm text-slate-600">{t("deny.cannot_submit")}</p>
+        </Card>
+      </div>
+    );
+  }
 
   const onSubmit = () => {
     const errs = validate(form);

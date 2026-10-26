@@ -6,6 +6,7 @@ import { Card, ClaimLink, PageHeader } from "@/components/ui";
 import { getUser } from "@/lib/reference";
 import type { IntakeRecord } from "@/lib/seed";
 import type { Channel } from "@/lib/types";
+import { canSubmit } from "@/lib/workflow";
 
 const CHANNELS: Channel[] = ["whatsapp", "email", "form", "import"];
 
@@ -56,8 +57,13 @@ export default function ImportPage() {
       }
       const r = raw as Record<string, unknown>;
       const requesterId = str(r.requesterId) ?? "";
-      if (!getUser(requesterId)) {
+      const who = getUser(requesterId);
+      if (!who) {
         errs.push(t("valid.record", { n: i + 1, problem: t("valid.requesterUnknown", { id: requesterId }) }));
+        return;
+      }
+      if (!canSubmit(who.role)) {
+        errs.push(t("valid.record", { n: i + 1, problem: t("valid.requesterCannotSubmit", { id: requesterId }) }));
         return;
       }
       const ev = r.evidence && typeof r.evidence === "object" ? (r.evidence as IntakeRecord["evidence"]) : null;
@@ -79,7 +85,11 @@ export default function ImportPage() {
     setErrors(errs);
     if (errs.length || !recs.length) return;
     const r = importRecords(recs);
-    if (r.ok) setImported(r.ids ?? []);
+    if (!r.ok) {
+      setErrors([r.message]);
+      return;
+    }
+    setImported(r.ids ?? []);
     setText("");
   };
 

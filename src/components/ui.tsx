@@ -132,7 +132,10 @@ export function ProjectName({ code }: { code: string | null }) {
 export function Owner({ claim }: { claim: Claim }) {
   const { name, t } = useApp();
   const o = currentOwner(claim);
-  if (!o) return <span className="text-slate-400">{t("value.nobody")}</span>;
+  if (!o) {
+    const closed = claim.status === "paid" || claim.status === "rejected";
+    return <span className={closed ? "text-slate-400" : "font-medium text-rose-700"}>{t(closed ? "value.nobody" : "value.noReviewer")}</span>;
+  }
   return (
     <span className="inline-flex items-center gap-2 whitespace-nowrap">
       <Avatar userId={o.id} size="sm" />

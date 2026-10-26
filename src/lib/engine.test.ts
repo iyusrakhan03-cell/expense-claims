@@ -3,7 +3,7 @@ import { seedClaims } from "./demo";
 import { getUser } from "./reference";
 import { requiresOps, triage } from "./rules";
 import type { Claim, FlagCode, User } from "./types";
-import { act, canAct, intake, queueFor, visibleClaims, WorkflowError } from "./workflow";
+import { act, canAct, canSubmit, intake, queueFor, visibleClaims, WorkflowError } from "./workflow";
 
 const T = "2026-10-26T12:00:00+03:00";
 const u = (id: string) => getUser(id) as User;
@@ -115,13 +115,6 @@ describe("approval workflow", () => {
     claims = act(claims, "R11", u("yousef"), "approve", T);
     expect(byId(claims, "R11").status).toBe("finance_review");
 
-    claims = intake(claims, {
-      receivedAt: T, channel: "form", requesterId: "fatima", message: "Courier", projectCode: "P-101",
-      amount: 50, currency: "SAR", expenseDate: "2026-10-25", purpose: "Courier",
-      evidence: { ref: "IMG-202", vendor: "Courier H", date: "2026-10-25", currency: "SAR", total: 50, receiptNo: "H1" },
-    }, { by: "fatima", at: T, via: "submit" });
-    claims = act(claims, "R12", u("omar"), "approve", T);
-    expect(canAct(u("fatima"), byId(claims, "R12"), "approve")).toMatchObject({ ok: false, reason: "own_claim" });
   });
 
   it("finance can't skip the project manager", () => {
@@ -181,6 +174,71 @@ describe("approval workflow", () => {
 
   it("reviewer actions need a reason", () => {
     expect(() => act(seedClaims(), "R01", u("omar"), "reject", T)).toThrow("note_required");
+  });
+});
+
+const simple = (requesterId: string, amount: number, currency: string, receiptNo: string, vendor = "Shop Z") => ({
+  receivedAt: T, channel: "form" as const, requesterId, message: "x", projectCode: "P-101", amount, currency,
+  expenseDate: "2026-10-25", purpose: "Materials",
+  evidence: { ref: `IMG-${receiptNo}`, vendor, date: "2026-10-25", currency, total: amount, receiptNo },
+});
+
+describe("review findings (regressions)", () => {
+  it("split found after approval: request goes back to Operations and can't be paid until cleared", () => {
+    let claims = intake(seedClaims(), simple("huda", 600, "SAR", "Z1"), { by: "huda", at: T, via: "submit" });
+    claims = act(claims, "R11", u("omar"), "approve", T);
+    claims = act(claims, "R11", u("fatima"), "approve", T);
+    expect(byId(claims, "R11").status).toBe("approved");
+
+    claims = intake(claims, simple("huda", 600, "SAR", "Z2"), { by: "huda", at: T, via: "submit" });
+    const r11 = byId(claims, "R11");
+    expect(r11.status).toBe("ops_review");
+    expect(r11.approvals.finance).toBeUndefined();
+    expect(r11.history.some((h) => h.action === "reroute")).toBe(true);
+    expect(canAct(u("fatima"), r11, "record_payment").ok).toBe(false);
+
+    // Operations clears it, then Finance approves again and can pay.
+    const i = r11.flags.findIndex((f) => f.code === "POSSIBLE_SPLIT");
+    claims = act(claims, "R11", u("yousef"), "resolve_flag", T, { flagIndex: i, note: "Two separate deliveries" });
+    const j = byId(claims, "R11").flags.findIndex((f) => f.code === "RELATED_PURCHASES");
+    claims = act(claims, "R11", u("yousef"), "resolve_flag", T, { flagIndex: j, note: "Checked with shop" });
+    claims = act(claims, "R11", u("yousef"), "approve", T);
+    claims = act(claims, "R11", u("fatima"), "approve", T);
+    claims = act(claims, "R11", u("fatima"), "record_payment", T, { note: "SIM-1" });
+    expect(byId(claims, "R11").status).toBe("paid");
+  });
+
+  it("split found while at finance review: Finance can't approve past Operations", () => {
+    let claims = intake(seedClaims(), simple("huda", 600, "SAR", "Z1"), { by: "huda", at: T, via: "submit" });
+    claims = act(claims, "R11", u("omar"), "approve", T);
+    expect(byId(claims, "R11").status).toBe("finance_review");
+    claims = intake(claims, simple("huda", 600, "SAR", "Z2"), { by: "huda", at: T, via: "submit" });
+    expect(byId(claims, "R11").status).toBe("ops_review");
+    expect(canAct(u("fatima"), byId(claims, "R11"), "approve").ok).toBe(false);
+  });
+
+  it("non-SAR requests always need Operations (no conversion is assumed)", () => {
+    let claims = intake(seedClaims(), simple("nabil", 900, "USD", "U1"), { by: "nabil", at: T, via: "submit" });
+    claims = act(claims, "R11", u("omar"), "approve", T);
+    expect(byId(claims, "R11").status).toBe("ops_review");
+  });
+
+  it("Finance and Operations can't submit requests that nobody could review", () => {
+    expect(canSubmit("finance")).toBe(false);
+    expect(canSubmit("ops")).toBe(false);
+    expect(canSubmit("pm")).toBe(true);
+    expect(canSubmit("requester")).toBe(true);
+    expect(() => intake(seedClaims(), simple("fatima", 50, "SAR", "F1"), { by: "fatima", at: T, via: "submit" })).toThrow("cannot_submit");
+    expect(() => intake(seedClaims(), simple("yousef", 1500, "SAR", "Y1"), { by: "yousef", at: T, via: "import" })).toThrow("cannot_submit");
+  });
+
+  it("payment is blocked while any warning is unresolved", () => {
+    let claims = intake(seedClaims(), simple("huda", 100, "SAR", "Q1"), { by: "huda", at: T, via: "submit" });
+    claims = act(claims, "R11", u("omar"), "approve", T);
+    claims = act(claims, "R11", u("fatima"), "approve", T);
+    const c = structuredClone(byId(claims, "R11"));
+    c.flags.push({ code: "POSSIBLE_DUPLICATE", kind: "investigate", owner: "finance", params: {}, related: [], state: "open" });
+    expect(canAct(u("fatima"), c, "record_payment")).toMatchObject({ ok: false, reason: "open_flags_payment" });
   });
 });
 

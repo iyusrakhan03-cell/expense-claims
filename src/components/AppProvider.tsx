@@ -130,22 +130,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const submit = useCallback(
     (rec: IntakeRecord): Result => {
-      const next = intake(claims, rec, { by: user.id, at: now(), via: "submit" });
-      setClaims(next);
-      return { ok: true, id: next[next.length - 1].id };
+      try {
+        const next = intake(claims, rec, { by: user.id, at: now(), via: "submit" });
+        setClaims(next);
+        return { ok: true, id: next[next.length - 1].id };
+      } catch (e) {
+        return { ok: false, message: describe(e) };
+      }
     },
-    [claims, user],
+    [claims, user, describe],
   );
 
   const importRecords = useCallback(
     (recs: IntakeRecord[]): Result => {
       const at = now();
       let next = claims;
-      for (const r of recs) next = intake(next, r, { by: user.id, at, via: "import" });
+      try {
+        for (const r of recs) next = intake(next, r, { by: user.id, at, via: "import" });
+      } catch (e) {
+        return { ok: false, message: describe(e) };
+      }
       setClaims(next);
       return { ok: true, ids: next.slice(claims.length).map((c) => c.id) };
     },
-    [claims, user],
+    [claims, user, describe],
   );
 
   const reset = useCallback(() => setClaims(seedClaims()), []);

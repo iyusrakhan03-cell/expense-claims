@@ -20,7 +20,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { TKey } from "@/lib/i18n";
-import { queueFor } from "@/lib/workflow";
+import { canSubmit, queueFor } from "@/lib/workflow";
 import { useApp } from "./AppProvider";
 import { PersonaSwitcher } from "./PersonaSwitcher";
 import { Avatar } from "./ui";
@@ -42,7 +42,7 @@ function SidebarContent({ onSwitch, onNavigate }: { onSwitch: () => void; onNavi
     { href: "/", key: `nav.home.${user.role}` as TKey, icon: isRequester ? Receipt : Inbox, badge: queueCount },
     { href: "/requests", key: isRequester ? "nav.myRequests" : "nav.requests", icon: ListChecks },
     ...(isRequester ? [] : [{ href: "/overview", key: "nav.overview" as TKey, icon: BarChart3 }]),
-    { href: "/new", key: "nav.new", icon: PlusCircle },
+    ...(canSubmit(user.role) ? [{ href: "/new", key: "nav.new" as TKey, icon: PlusCircle }] : []),
   ];
   const more: NavItem[] = [
     ...(isRequester ? [] : [{ href: "/import", key: "nav.import" as TKey, icon: Upload }]),

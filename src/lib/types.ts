@@ -87,7 +87,7 @@ export type Action =
 export interface HistoryEntry {
   at: string;
   by: string;
-  action: Action | "import" | "rules";
+  action: Action | "import" | "rules" | "reroute";
   from?: Status;
   to?: Status;
   note?: string;

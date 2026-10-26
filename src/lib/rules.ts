@@ -198,9 +198,13 @@ export function triage(claim: Claim): Triage {
   return "forward";
 }
 
-/** Above SAR 1,000, or flagged as a possible split / related purchase: Ops must also authorize. */
+/**
+ * Above SAR 1,000, flagged as a possible split / related purchase, or in another currency
+ * (the SAR value can't be known without a conversion nobody has approved): Ops must also authorize.
+ */
 export function requiresOps(claim: Claim): boolean {
-  if (effectiveCurrency(claim) === BASE_CURRENCY && (claim.amount ?? 0) > OPS_THRESHOLD) return true;
+  if (effectiveCurrency(claim) !== BASE_CURRENCY) return true;
+  if ((claim.amount ?? 0) > OPS_THRESHOLD) return true;
   return claim.flags.some((f) => f.code === "POSSIBLE_SPLIT" || f.code === "RELATED_PURCHASES");
 }
 

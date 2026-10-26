@@ -89,7 +89,17 @@ const en = {
   "flag.MISSING_PURPOSE": "Purpose missing.",
   "flag.MISSING_EVIDENCE": "No receipt attached — waiting for evidence. Small amounts are not exempt.",
   "flag.CURRENCY_ASSUMED": "Currency not stated — {currency} assumed (exercise rule: SAR unless stated).",
-  "flag.FOREIGN_CURRENCY": "Request is in {currency}. No conversion is done — Finance decides how to handle it.",
+  "flag.FOREIGN_CURRENCY":
+    "Request is in {currency}. No conversion is done, so Operations must also authorize, and Finance decides how to handle it.",
+  "flag.POSSIBLE_DUPLICATE_OTHER":
+    "Potential duplicate: the same receipt was already used in an earlier request. It stays potential until Finance decides.",
+  "history.reroute": "Sent to Operations — a new warning needs the second authorization",
+  "deny.needs_ops": "Operations must authorize this request first.",
+  "deny.open_flags_payment": "Resolve all open warnings before recording payment.",
+  "deny.cannot_submit":
+    "Finance and Operations don't submit requests in this prototype — there is no second person to review them (open question for the team).",
+  "value.noReviewer": "No eligible reviewer",
+  "valid.requesterCannotSubmit": "“{id}” can't submit requests (Finance / Operations)",
   "flag.CURRENCY_MISMATCH": "Currency differs: request {claimed}, receipt {receipt}. Not converted.",
   "flag.AMOUNT_MISMATCH": "Amount differs: request {claimed}, receipt {receipt} {currency}. Not corrected.",
   "flag.ARITHMETIC_MISMATCH":
@@ -463,7 +473,14 @@ const ar: Record<TKey, string> = {
   "flag.MISSING_PURPOSE": "الغرض غير موجود.",
   "flag.MISSING_EVIDENCE": "لا يوجد إيصال مرفق — بانتظار الإثبات. المبالغ الصغيرة ليست مستثناة.",
   "flag.CURRENCY_ASSUMED": "العملة غير مذكورة — افتُرضت {currency} (قاعدة التمرين: الريال ما لم يُذكر غير ذلك).",
-  "flag.FOREIGN_CURRENCY": "الطلب بعملة {currency}. لا يتم أي تحويل — قسم المالية يقرر طريقة التعامل.",
+  "flag.FOREIGN_CURRENCY": "الطلب بعملة {currency}. لا يتم أي تحويل، لذا يلزم تفويض مدير العمليات أيضاً، وقسم المالية يقرر طريقة التعامل.",
+  "flag.POSSIBLE_DUPLICATE_OTHER": "تكرار محتمل: استُخدم نفس الإيصال في طلب سابق. يبقى محتملاً حتى يقرر قسم المالية.",
+  "history.reroute": "أُحيل إلى العمليات — تنبيه جديد يتطلب التفويض الثاني",
+  "deny.needs_ops": "يجب أن يفوّض مدير العمليات هذا الطلب أولاً.",
+  "deny.open_flags_payment": "قم بتسوية جميع التنبيهات المفتوحة قبل تسجيل الدفع.",
+  "deny.cannot_submit": "لا تقدّم المالية والعمليات طلبات في هذا النموذج — لا يوجد شخص ثانٍ لمراجعتها (سؤال مفتوح للفريق).",
+  "value.noReviewer": "لا يوجد مراجع مؤهل",
+  "valid.requesterCannotSubmit": "“{id}” لا يمكنه تقديم طلبات (المالية / العمليات)",
   "flag.CURRENCY_MISMATCH": "العملة مختلفة: الطلب {claimed}، الإيصال {receipt}. لم يتم التحويل.",
   "flag.AMOUNT_MISMATCH": "المبلغ مختلف: الطلب {claimed}، الإيصال {receipt} {currency}. لم يتم التصحيح.",
   "flag.ARITHMETIC_MISMATCH":

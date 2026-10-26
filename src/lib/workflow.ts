@@ -42,6 +42,14 @@ export function currentOwner(claim: Claim): User | null {
   return USERS.find((u) => u.role === role && u.id !== claim.requesterId) ?? null;
 }
 
+/**
+ * Finance and Operations have one person each in this demo, so a request of theirs would reach
+ * a step nobody else can take. They don't submit requests here (open question for the team).
+ */
+export function canSubmit(role: Role): boolean {
+  return role === "requester" || role === "pm";
+}
+
 export function canSee(user: User, claim: Claim): boolean {
   return user.role !== "requester" || claim.requesterId === user.id;
 }
@@ -79,6 +87,7 @@ export function canAct(user: User, claim: Claim, action: Action, flagIndex?: num
       if (!REVIEW_STEPS.includes(claim.status)) return deny("not_your_step");
       const blocking = blockingFlags(claim);
       if (blocking.length) return deny("resolve_flags_first", { n: blocking.length });
+      if (claim.status === "finance_review" && requiresOps(claim) && !claim.approvals.ops) return deny("needs_ops");
       if (claim.status === "finance_review" && !claim.evidence) return deny("no_evidence");
       return { ok: true };
     }
@@ -100,6 +109,7 @@ export function canAct(user: User, claim: Claim, action: Action, flagIndex?: num
     case "record_payment":
       if (claim.status !== "approved") return deny("not_your_step");
       if (claim.isSample) return deny("sample_no_payment");
+      if (claim.flags.some(isUnresolved)) return deny("open_flags_payment");
       return { ok: true };
   }
   return deny("not_your_step");
@@ -121,16 +131,33 @@ export function nextId(claims: Claim[]): string {
 }
 
 /**
+ * Past the PM step, a request that now needs Operations — e.g. a related purchase arrived after it
+ * was approved — must go back to Operations instead of slipping through to payment.
+ */
+function needsOpsNow(c: Claim): boolean {
+  if (c.status !== "finance_review" && c.status !== "approved") return false;
+  if (requiresOps(c) && !c.approvals.ops) return true;
+  return c.flags.some((f) => f.owner === "ops" && isUnresolved(f));
+}
+
+/**
  * Re-run the rules on every open request, e.g. so earlier requests learn about a new related one.
  * Newly raised flags are written to that request's history so the audit trail explains them.
  */
-export function recomputeAll(claims: Claim[], at?: string): Claim[] {
+export function recomputeAll(claims: Claim[], at: string): Claim[] {
   return claims.map((c) => {
     if (TERMINAL.includes(c.status)) return c;
     const flags = mergeFlags(c.flags, runRules(c, claims));
     const added = flags.filter((f) => !c.flags.some((o) => o.code === f.code)).map((f) => f.code);
-    const history = at && added.length ? [...c.history, entry(SYSTEM, "rules", at, { codes: added })] : c.history;
-    return { ...c, flags, history };
+    const history = added.length ? [...c.history, entry(SYSTEM, "rules", at, { codes: added })] : c.history;
+    const next: Claim = { ...c, flags, history };
+    if (!needsOpsNow(next)) return next;
+    return {
+      ...next,
+      status: "ops_review",
+      approvals: { pm: next.approvals.pm },
+      history: [...history, entry(SYSTEM, "reroute", at, { from: c.status, to: "ops_review" })],
+    };
   });
 }
 
@@ -140,6 +167,8 @@ export function intake(
   rec: IntakeRecord,
   opts: { by: string; at: string; sample?: boolean; via: "submit" | "import" },
 ): Claim[] {
+  const requester = getUser(rec.requesterId);
+  if (!requester || !canSubmit(requester.role)) throw new WorkflowError("cannot_submit");
   const id = rec.id && !claims.some((c) => c.id === rec.id) ? rec.id : nextId(claims);
   const draft: Claim = {
     id,

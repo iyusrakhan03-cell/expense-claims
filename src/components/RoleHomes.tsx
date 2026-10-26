@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { effectiveCurrency, isUnresolved } from "@/lib/rules";
 import type { Claim, User } from "@/lib/types";
-import { queueFor, statusGroup, visibleClaims } from "@/lib/workflow";
+import { canSubmit, queueFor, statusGroup, visibleClaims } from "@/lib/workflow";
 import { useApp } from "./AppProvider";
 import { ClaimsTable } from "./ClaimsTable";
 import { useFlagText } from "./flagText";
@@ -33,7 +33,8 @@ function decidedBy(user: User, claims: Claim[]) {
 }
 
 function NewButton() {
-  const { t } = useApp();
+  const { t, user } = useApp();
+  if (!canSubmit(user.role)) return null;
   return (
     <Link href="/new" className="btn-primary">
       <PlusCircle className="h-4 w-4" aria-hidden />

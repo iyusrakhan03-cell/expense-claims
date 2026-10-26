@@ -6,7 +6,7 @@ import { useApp } from "@/components/AppProvider";
 import { ClaimsTable } from "@/components/ClaimsTable";
 import { useRequestFilters } from "@/components/RequestFilters";
 import { Card, PageHeader } from "@/components/ui";
-import { visibleClaims } from "@/lib/workflow";
+import { canSubmit, visibleClaims } from "@/lib/workflow";
 
 export default function RequestsPage() {
   const { claims, user, t } = useApp();
@@ -20,10 +20,12 @@ export default function RequestsPage() {
         title={isRequester ? t("nav.myRequests") : t("nav.requests")}
         subtitle={isRequester ? t("dash.scopeOwn") : t("dash.scopeAll")}
         actions={
-          <Link href="/new" className="btn-primary">
-            <PlusCircle className="h-4 w-4" aria-hidden />
-            {t("nav.new")}
-          </Link>
+          canSubmit(user.role) ? (
+            <Link href="/new" className="btn-primary">
+              <PlusCircle className="h-4 w-4" aria-hidden />
+              {t("nav.new")}
+            </Link>
+          ) : undefined
         }
       />
       <Card flush>
