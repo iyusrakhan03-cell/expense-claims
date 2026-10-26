@@ -2,7 +2,7 @@
 
 A small working app for requesting, checking, approving and tracking project expenses, with English/Arabic (RTL) and four role views. All data is fictional; login, payment and receipt images are simulated.
 
-**Live demo:** _link added on deployment_
+**Live demo:** https://expense-claims-gilt.vercel.app
 
 ## Try it (no setup)
 
@@ -23,7 +23,7 @@ Requires Node.js 18.17+.
 ```bash
 npm install
 npm run dev        # http://localhost:3000
-npm test           # 28 rule/workflow tests (sample outcomes, separation of duties, privacy)
+npm test           # 33 rule/workflow tests (sample outcomes, separation of duties, privacy)
 npm run build && npm start
 ```
 

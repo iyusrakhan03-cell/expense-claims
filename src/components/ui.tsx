@@ -117,19 +117,21 @@ export function Amount({ claim }: { claim: Claim }) {
   );
 }
 
-export function ProjectName({ code }: { code: string | null }) {
+/** `stacked` puts the project name under the code, to keep table columns narrow. */
+export function ProjectName({ code, stacked = false }: { code: string | null; stacked?: boolean }) {
   const { lang, t } = useApp();
   if (!code) return <span className="text-amber-700">{t("value.missing")}</span>;
   const p = PROJECTS[code];
   return (
-    <span>
+    <span className={stacked ? "flex flex-col items-start gap-0.5" : undefined}>
       <span className="ltr-num rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-700">{code}</span>
-      {p && <span className="ms-1.5 text-slate-600">{lang === "ar" ? p.ar : p.en}</span>}
+      {p && <span className={stacked ? "text-xs text-slate-500" : "ms-1.5 text-slate-600"}>{lang === "ar" ? p.ar : p.en}</span>}
     </span>
   );
 }
 
-export function Owner({ claim }: { claim: Claim }) {
+/** `stacked` puts the role under the name, to keep table columns narrow. */
+export function Owner({ claim, stacked = false }: { claim: Claim; stacked?: boolean }) {
   const { name, t } = useApp();
   const o = currentOwner(claim);
   if (!o) {
@@ -139,9 +141,16 @@ export function Owner({ claim }: { claim: Claim }) {
   return (
     <span className="inline-flex items-center gap-2 whitespace-nowrap">
       <Avatar userId={o.id} size="sm" />
-      <span>
-        {name(o.id)} <span className="text-xs text-slate-500">· {t(`role.${o.role}`)}</span>
-      </span>
+      {stacked ? (
+        <span className="flex flex-col leading-tight">
+          {name(o.id)}
+          <span className="text-xs text-slate-500">{t(`role.${o.role}`)}</span>
+        </span>
+      ) : (
+        <span>
+          {name(o.id)} <span className="text-xs text-slate-500">· {t(`role.${o.role}`)}</span>
+        </span>
+      )}
     </span>
   );
 }

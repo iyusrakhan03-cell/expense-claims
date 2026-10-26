@@ -16,7 +16,7 @@ export interface FormState {
   ev: { ref: string; vendor: string; date: string; currency: string; total: string; receiptNo: string; lineItems: string; note: string };
 }
 
-export type FormErrors = Partial<Record<keyof FormState | "lineItems", TKey>>;
+export type FormErrors = Partial<Record<keyof FormState | "lineItems" | "vendor", TKey>>;
 
 export function emptyForm(): FormState {
   return {
@@ -68,6 +68,8 @@ export function validate(f: FormState): FormErrors {
   if (!f.expenseDate) err.expenseDate = "valid.required";
   if (!f.purpose.trim()) err.purpose = "valid.required";
   if (parseLines(f.ev.lineItems) === null) err.lineItems = "valid.lineItems";
+  // Related-purchase and split checks group by vendor, so a receipt without one would slip past them.
+  if (f.ev.ref.trim() && !f.ev.vendor.trim()) err.vendor = "valid.vendor";
   return err;
 }
 
@@ -200,8 +202,10 @@ export function RequestFields({
           <div>
             <label className="label" htmlFor="f-vendor">
               {t("field.vendor")}
+              {form.ev.ref.trim() ? " *" : ""}
             </label>
             <input id="f-vendor" className="input" value={form.ev.vendor} onChange={(e) => setEv({ vendor: e.target.value })} />
+            <Err k={errors.vendor} />
           </div>
           <div>
             <label className="label" htmlFor="f-rno">

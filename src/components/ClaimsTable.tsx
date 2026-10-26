@@ -37,7 +37,7 @@ export function ClaimsTable({ claims, showRequester = true, emptyText }: { claim
                     <ClaimLink id={c.id} />
                     {c.isSample && <SampleTag />}
                   </div>
-                  <div className="mt-0.5 max-w-[220px] truncate text-slate-700" title={c.purpose ?? ""}>
+                  <div className="mt-0.5 max-w-[180px] truncate text-slate-700" title={c.purpose ?? ""}>
                     {c.purpose ?? <span className="text-amber-700">{t("value.missing")}</span>}
                   </div>
                   <div className="text-xs text-slate-400">{date(c.receivedAt, true)}</div>
@@ -51,7 +51,7 @@ export function ClaimsTable({ claims, showRequester = true, emptyText }: { claim
                   </td>
                 )}
                 <td className="td whitespace-nowrap">
-                  <ProjectName code={c.projectCode} />
+                  <ProjectName code={c.projectCode} stacked />
                 </td>
                 <td className="td text-end">
                   <Amount claim={c} />
@@ -60,10 +60,10 @@ export function ClaimsTable({ claims, showRequester = true, emptyText }: { claim
                   <StatusBadge status={c.status} />
                 </td>
                 <td className="td">
-                  <Owner claim={c} />
+                  <Owner claim={c} stacked />
                 </td>
                 <td className="td">
-                  <div className="flex max-w-[260px] flex-col items-start gap-1.5">
+                  <div className="flex min-w-[170px] max-w-[240px] flex-col items-start gap-1.5">
                     <TriageBadge claim={c} />
                     <Reasons claim={c} />
                   </div>
