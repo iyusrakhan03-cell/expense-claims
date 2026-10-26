@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   BarChart3,
@@ -35,8 +35,28 @@ interface NavItem {
 function SidebarContent({ onSwitch, onNavigate }: { onSwitch: () => void; onNavigate?: () => void }) {
   const { ready, user, lang, setLang, t, name, reset, claims } = useApp();
   const path = usePathname();
+  const router = useRouter();
   const isRequester = user.role === "requester";
   const queueCount = ready ? queueFor(user, claims).length : 0;
+  // Two-click reset: window.confirm() can be silently suppressed by the browser.
+  const [resetArmed, setResetArmed] = useState(false);
+
+  useEffect(() => {
+    if (!resetArmed) return;
+    const id = setTimeout(() => setResetArmed(false), 4000);
+    return () => clearTimeout(id);
+  }, [resetArmed]);
+
+  const onReset = () => {
+    if (!resetArmed) {
+      setResetArmed(true);
+      return;
+    }
+    setResetArmed(false);
+    reset();
+    onNavigate?.();
+    router.push("/");
+  };
 
   const work: NavItem[] = [
     { href: "/", key: `nav.home.${user.role}` as TKey, icon: isRequester ? Receipt : Inbox, badge: queueCount },
@@ -109,13 +129,13 @@ function SidebarContent({ onSwitch, onNavigate }: { onSwitch: () => void; onNavi
           <span lang={lang === "en" ? "ar" : "en"}>{t("app.language")}</span>
         </button>
         <button
-          onClick={() => {
-            if (window.confirm(t("app.resetConfirm"))) reset();
-          }}
-          className="flex min-h-[40px] cursor-pointer items-center gap-3 rounded-lg px-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white"
+          onClick={onReset}
+          className={`flex min-h-[40px] cursor-pointer items-center gap-3 rounded-lg px-3 text-sm transition-colors ${
+            resetArmed ? "bg-amber-400/15 font-semibold text-amber-300" : "text-slate-300 hover:bg-white/5 hover:text-white"
+          }`}
         >
           <RotateCcw className="h-[18px] w-[18px]" aria-hidden />
-          {t("app.reset")}
+          <span aria-live="polite">{t(resetArmed ? "app.resetAgain" : "app.reset")}</span>
         </button>
       </div>
     </div>

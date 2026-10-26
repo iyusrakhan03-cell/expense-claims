@@ -8,7 +8,7 @@ const en = {
   "app.actingAs": "Acting as",
   "app.language": "العربية",
   "app.reset": "Reset demo",
-  "app.resetConfirm": "Reset all data back to the ten sample requests?",
+  "app.resetAgain": "Click again to reset",
   "app.loading": "Loading…",
 
   "nav.dashboard": "Dashboard",
@@ -393,7 +393,7 @@ const ar: Record<TKey, string> = {
   "app.actingAs": "الدخول باسم",
   "app.language": "English",
   "app.reset": "إعادة ضبط العرض",
-  "app.resetConfirm": "هل تريد إعادة كل البيانات إلى الطلبات العشرة النموذجية؟",
+  "app.resetAgain": "اضغط مرة أخرى لإعادة الضبط",
   "app.loading": "جارٍ التحميل…",
 
   "nav.dashboard": "لوحة المتابعة",
