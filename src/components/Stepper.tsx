@@ -78,7 +78,7 @@ export function Stepper({ claim, compact = false }: { claim: Claim; compact?: bo
                     ? `${name(s.approval.by)} · ${date(s.approval.at, true)}`
                     : "";
         return (
-          <li key={s.key} className="relative flex flex-1 flex-col items-center text-center">
+          <li key={s.key} className="relative flex min-w-0 flex-1 flex-col items-center text-center">
             {!last && (
               <span
                 className={`absolute top-3.5 h-0.5 ${s.state === "done" ? "bg-emerald-500" : "bg-slate-200"}`}
@@ -90,13 +90,13 @@ export function Stepper({ claim, compact = false }: { claim: Claim; compact?: bo
             {!compact && (
               <>
                 <span
-                  className={`mt-2 text-xs font-semibold ${
+                  className={`mt-2 max-w-full break-words px-0.5 text-[11px] font-semibold leading-tight sm:text-xs ${
                     s.state === "upcoming" || s.state === "skipped" ? "text-slate-400" : "text-slate-800"
                   }`}
                 >
                   {t(s.key)}
                 </span>
-                {sub && <span className="mt-0.5 px-1 text-[11px] leading-tight text-slate-500">{sub}</span>}
+                {sub && <span className="mt-0.5 max-w-full break-words px-0.5 text-[11px] leading-tight text-slate-500">{sub}</span>}
               </>
             )}
             {compact && <span className="sr-only">{t(s.key)}</span>}

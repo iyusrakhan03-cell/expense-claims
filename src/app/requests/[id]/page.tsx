@@ -308,10 +308,8 @@ export default function ClaimPage() {
       </div>
       </div>
 
-      <div className="card overflow-x-auto px-4 py-5">
-        <div className="min-w-[460px]">
-          <Stepper claim={claim} />
-        </div>
+      <div className="card px-3 py-5 sm:px-4">
+        <Stepper claim={claim} />
       </div>
 
       {error &&<p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}

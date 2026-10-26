@@ -288,7 +288,7 @@ export function Tabs<T extends string>({
           role="tab"
           aria-selected={value === tb.key}
           onClick={() => onChange(tb.key)}
-          className={`-mb-px flex min-h-[44px] cursor-pointer items-center gap-2 whitespace-nowrap border-b-2 px-3 text-sm transition-colors ${
+          className={`-mb-px flex min-h-[44px] flex-1 cursor-pointer items-center justify-center gap-1.5 border-b-2 px-2 text-center text-sm leading-tight transition-colors sm:flex-none sm:gap-2 sm:whitespace-nowrap sm:px-3 ${
             value === tb.key ? "border-accent-700 font-semibold text-accent-800" : "border-transparent text-slate-600 hover:text-slate-900"
           }`}
         >

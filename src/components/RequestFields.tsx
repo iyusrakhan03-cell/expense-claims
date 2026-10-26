@@ -182,8 +182,8 @@ export function RequestFields({
           <Err k={errors.expenseDate} />
         </div>
         {showUrgent && (
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.urgent} onChange={(e) => set({ urgent: e.target.checked })} />
+          <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm">
+            <input type="checkbox" className="h-4 w-4" checked={form.urgent} onChange={(e) => set({ urgent: e.target.checked })} />
             {t("field.urgent")}
           </label>
         )}

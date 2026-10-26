@@ -2,7 +2,7 @@
 
 import { Ban, Banknote, CircleCheck, Clock } from "lucide-react";
 import { useApp } from "@/components/AppProvider";
-import { Card, ClaimLink, PageHeader, Reasons, Stat, StatusBadge } from "@/components/ui";
+import { Card, ClaimLink, PageHeader, ProjectName, Reasons, Stat, StatusBadge } from "@/components/ui";
 import { PROJECTS } from "@/lib/reference";
 import { effectiveCurrency, triage } from "@/lib/rules";
 import type { Claim, Status, Triage } from "@/lib/types";
@@ -31,7 +31,7 @@ function sarTotal(cs: Claim[]) {
 }
 
 export default function Overview() {
-  const { claims, user, t, num, lang } = useApp();
+  const { claims, user, t, num } = useApp();
   const scope = visibleClaims(user, claims);
   const open = scope.filter((c) => statusGroup(c.status) === "pending");
   const by = (g: StatusGroup) => scope.filter((c) => statusGroup(c.status) === g);
@@ -72,15 +72,16 @@ export default function Overview() {
           </div>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card title={t("dash.byStep")}>
             <ul className="space-y-3">
               {PENDING_STEPS.map((s) => {
                 const n = open.filter((c) => c.status === s).length;
                 return (
-                  <li key={s} className="grid grid-cols-[180px_1fr_28px] items-center gap-3 text-sm">
+                  <li key={s} className="grid grid-cols-[1fr_28px] items-center gap-x-3 gap-y-1.5 text-sm sm:grid-cols-[180px_1fr_28px]">
                     <StatusBadge status={s} />
-                    <span className="h-2 overflow-hidden rounded-full bg-slate-100">
+                    {/* On phones the bar drops under the badge so the row fits. */}
+                    <span className="order-last col-span-2 h-2 overflow-hidden rounded-full bg-slate-100 sm:order-none sm:col-span-1">
                       <span className={`block h-full rounded-full ${BAR[s]}`} style={{ width: `${(n / maxOpen) * 100}%` }} />
                     </span>
                     <span className="ltr-num text-end font-semibold tabular-nums">{n}</span>
@@ -92,12 +93,12 @@ export default function Overview() {
 
           <Card title={t("dash.byProject")} flush>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[440px]">
+              <table className="w-full min-w-[320px]">
                 <thead className="border-b border-slate-200 bg-slate-50/80">
                   <tr>
                     <th className="th">{t("field.project")}</th>
                     {(["pending", "approved", "paid"] as StatusGroup[]).map((g) => (
-                      <th key={g} className="th text-end">
+                      <th key={g} className="th whitespace-normal text-end sm:whitespace-nowrap">
                         {t(`group.${g}`)}
                       </th>
                     ))}
@@ -108,10 +109,7 @@ export default function Overview() {
                     <tr key={p ?? "none"}>
                       <td className="td">
                         {p ? (
-                          <>
-                            <span className="ltr-num rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">{p}</span>{" "}
-                            <span className="text-slate-600">{lang === "ar" ? PROJECTS[p].ar : PROJECTS[p].en}</span>
-                          </>
+                          <ProjectName code={p} stacked />
                         ) : (
                           <span className="text-slate-500">{t("dash.noProject")}</span>
                         )}
@@ -121,7 +119,7 @@ export default function Overview() {
                         return (
                           <td key={g} className="td text-end">
                             <span className="ltr-num font-semibold tabular-nums">{cs.length}</span>
-                            <span className="block text-xs text-slate-500">{t("dash.amount", { amount: num(sarTotal(cs)) })}</span>
+                            <span className="block whitespace-nowrap text-xs text-slate-500">{t("dash.amount", { amount: num(sarTotal(cs)) })}</span>
                           </td>
                         );
                       })}
